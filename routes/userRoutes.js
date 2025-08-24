@@ -21,12 +21,27 @@ router.post("/register", async (req, res) => {
     user = new User({ name, email, password: hashedPassword });
     await user.save();
 
-    res.status(201).json({ message: "User registered successfully" });
+    // 🔑 Generate JWT
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    // ✅ Send token + user info
+    res.status(201).json({
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role || "user", // default role
+      },
+    });
   } catch (err) {
     console.error("Register error:", err.message);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 // ✅ Login
 router.post("/login", async (req, res) => {
