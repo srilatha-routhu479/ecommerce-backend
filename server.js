@@ -1,55 +1,36 @@
-// Load environment variables
-import dotenv from "dotenv";
-dotenv.config();
-
 import express from "express";
 import mongoose from "mongoose";
-import cors from "cors";
+import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import cors from "cors";
 
-// ✅ Fix for __dirname in ES Modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Import Routes
 import productRoutes from "./routes/ProductRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
-import cartRoutes from "./routes/cartRoutes.js";
-import orderRoutes from "./routes/orderRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js";
 
-
+dotenv.config();
 const app = express();
 
 // Middleware
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
-// ✅ Serve static images folder
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+
 app.use("/images", express.static(path.join(__dirname, "public/images")));
 
+// Routes
+app.use("/products", productRoutes);
 
-// API Routes
-app.use("/api/products", productRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/cart", cartRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/admin", adminRoutes);
-
-app.get("/", (req, res) => {
-  res.send("🚀 API is running...");
-});
-
-
-// ✅ MongoDB Connection
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB connection failed:", err.message));
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("✅ MongoDB Connected"))
+.catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
 // Start server
 const PORT = process.env.PORT || 5000;
