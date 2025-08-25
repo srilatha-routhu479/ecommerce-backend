@@ -37,6 +37,11 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 
+app.get("/", (req, res) => {
+  res.send("🚀 API is running...");
+});
+
+
 // ✅ MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI, {

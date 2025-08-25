@@ -1,54 +1,60 @@
 import Product from "../models/Product.js";
 
+// Backend base URL (change if you deploy to another domain)
+const BASE_URL = "https://ecommerce-backend-2-g9wx.onrender.com";
+
 // GET /api/products → Get all products
 export const getAllProducts = async (req, res) => {
   try {
     const products = await Product.find();
 
-    
-    const formatted = products.map((p) => ({
+    // Ensure image has full URL
+    const updatedProducts = products.map((p) => ({
       ...p._doc,
-      image: p.image || null,
+      image: p.image?.startsWith("/images")
+        ? `${BASE_URL}${p.image}`
+        : p.image,
     }));
 
-    res.json(formatted);
+    res.json(updatedProducts);
   } catch (err) {
     console.error("❌ Error fetching products:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-
+// GET /api/products/:id → Get single product
 export const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    res.json({
+    const updatedProduct = {
       ...product._doc,
-      image: product.image || null,
-    });
+      image: product.image?.startsWith("/images")
+        ? `${BASE_URL}${product.image}`
+        : product.image,
+    };
+
+    res.json(updatedProduct);
   } catch (err) {
     console.error("❌ Error fetching product:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// POST /api/products → Create product (admin only)
+// POST /api/products → Create product
 export const createProduct = async (req, res) => {
   try {
-    let { name, price, image } = req.body;
+    const { name, price, image } = req.body;
 
-    // ✅ Validate base64 image format
-    if (image && !image.startsWith("data:image")) {
-      return res.status(400).json({
-        message: "Image must be a valid base64 string (data:image/...;base64,xxx)",
-      });
-    }
+    const newProduct = new Product({
+      name,
+      price,
+      image, // store as /images/... or full URL
+    });
 
-    const newProduct = new Product(req.body);
     const savedProduct = await newProduct.save();
-
     res.status(201).json(savedProduct);
   } catch (err) {
     console.error("❌ Error creating product:", err);
